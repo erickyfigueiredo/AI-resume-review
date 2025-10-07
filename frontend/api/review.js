@@ -9,6 +9,8 @@ export default async function handler(req, res) {
   }
 
   const API_KEY = process.env.GEMINI_API_KEY;
+  const MODEL = process.env.GEMINI_MODEL || 'gemini-1.5-flash-002';
+  const BASE  = 'https://generativelanguage.googleapis.com/v1beta';
 
   if (!API_KEY) {
     return res.status(200).json({
@@ -52,14 +54,14 @@ Return only JSON, no prose.`.trim();
 
   try {
     const resp = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`,
-      {
+    `${BASE}/models/${MODEL}:generateContent?key=${API_KEY}`,
+    {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-      }
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
+        signal: controller.signal
+    }
     );
-
     if (!resp.ok) {
       const errBody = await resp.text().catch(() => '');
       console.error('Gemini HTTP error', resp.status, errBody);
